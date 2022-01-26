@@ -5,4 +5,4 @@ A music streaming company, Sparkify, has decided that it is time to introduce mo
 
 The project aims to create high grade data pipelines that are dynamic and built from reusable tasks, can be monitored, and allow easy backfills. Data quality plays a big part when analyses are executed on top the data warehouse so the pipeline also run tests against the datasets after the ETL steps have been executed to catch any discrepancies in the datasets.
 
-Keywords: Apeche Airflow, Apache Spark, Amazon Redshift, Amazon S3, PostgreSQL, Python
+Keywords: Apache Airflow, Apache Spark, Amazon Redshift, Amazon S3, PostgreSQL, Python
