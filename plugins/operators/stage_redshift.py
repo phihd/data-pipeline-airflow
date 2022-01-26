@@ -9,8 +9,8 @@ class StageToRedshiftOperator(BaseOperator):
     # a templated field that allows the operator to load timestamped files from S3 based on the execution time and run backfills
     template_fields = ('s3_key',)
     copy_sql = '''
-        COPY {table}
-        FROM '{s3_path}'
+        COPY {}
+        FROM '{}'
         ACCESS_KEY_ID '{}'
         SECRET_ACCESS_KEY '{}'
         {} REGION '{}'

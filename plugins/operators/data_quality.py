@@ -9,21 +9,18 @@ class DataQualityOperator(BaseOperator):
     @apply_defaults
     def __init__(self,
                  redshift_conn_id='',
-                 tables=[],
                  tests=[],
                  *args, **kwargs):
 
         super(DataQualityOperator, self).__init__(*args, **kwargs)
         self.redshift_conn_id = redshift_conn_id
-        self.tables = tables
-        self.test_class = tests[0]
-        self.test_names = tests[1]
+        self.tests = tests
 
     def execute(self, context):
         redshift_hook = PostgresHook(self.redshift_conn_id)
         
         for test in self.tests:
-            test.records = redshift_hool.get_records(test.sql)
+            test.records = redshift_hook.get_records(test.sql)
             test.validate()
             
         

@@ -17,7 +17,7 @@ class QualityTest:
         self.validation=validation
         
     def validate(self):
-        return self.validation()
+        return self.validation(self)
 
     def has_rows(self):
         if len(self.records) < 1 or len(self.records[0]) < 1:

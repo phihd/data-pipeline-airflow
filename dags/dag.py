@@ -3,7 +3,8 @@ import os
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators import (StageToRedshiftOperator, LoadFactOperator,
-                                LoadDimensionOperator, DataQualityOperator)
+                               LoadDimensionOperator, DataQualityOperator,
+                               PostgresOperator)
 from helpers import SqlQueries, QualityTest
 
 # AWS_KEY = os.environ.get('AWS_KEY')
@@ -14,7 +15,7 @@ REDSHIFT_CONN_ID = 'redshift'
 DAG_ID = 'dag'
 S3_BUCKET = 'udacity-dend'
 S3_SONG_KEY = 'song_data'
-S3_LOG_KEY = 'log_data/{execution_date.year}/{execution_date.month}'
+S3_LOG_KEY = 'log_data/2018/11'
 LOG_JSON_PATH = f's3://{S3_BUCKET}/log_json_path.json'
 REGION = 'us-west-2'
 
@@ -31,10 +32,17 @@ default_args = {
 dag = DAG('dag',
           default_args=default_args,
           description='Load and transform data in Redshift with Airflow',
-          schedule_interval='0 * * * *'
+          schedule_interval='@hourly'
         )
 
 start_operator = DummyOperator(task_id='Begin_execution', dag=dag)
+
+create_tables_task = PostgresOperator(
+  task_id='Create_tables',
+  dag=dag,
+  sql='sql/create_tables.sql',
+  postgres_conn_id="redshift"
+)
 
 stage_events_to_redshift = StageToRedshiftOperator(
     task_id='Stage_events',
@@ -66,16 +74,16 @@ load_songplays_table = LoadFactOperator(
     task_id='Load_songplays_fact_table',
     dag=dag,
     redshift_conn_id=REDSHIFT_CONN_ID,
-    table='staging_songs',
+    table='songplays',
     sql=SqlQueries.songplay_table_insert,
-    truncate=True
+    truncate=False
 )
 
 load_user_dimension_table = LoadDimensionOperator(
     task_id='Load_user_dim_table',
     dag=dag,
     redshift_conn_id=REDSHIFT_CONN_ID,
-    table='user',
+    table='users',
     sql=SqlQueries.user_table_insert,
     truncate=True
 )
@@ -117,8 +125,9 @@ run_quality_checks = DataQualityOperator(
 
 end_operator = DummyOperator(task_id='Stop_execution', dag=dag)
 
-start_operator >> stage_events_to_redshift
-start_operator >> stage_songs_to_redshift
+start_operator >> create_tables_task
+create_tables_task >> stage_events_to_redshift
+create_tables_task >> stage_songs_to_redshift
 stage_events_to_redshift >> load_songplays_table
 stage_songs_to_redshift >> load_songplays_table
 load_songplays_table >> load_time_dimension_table

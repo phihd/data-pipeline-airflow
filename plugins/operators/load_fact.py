@@ -6,8 +6,8 @@ class LoadFactOperator(BaseOperator):
 
     ui_color = '#F98866'
     insert_sql = '''
-        INSERT INTO {table}
-        {sql}
+        INSERT INTO {}
+        {}
     '''
 
     @apply_defaults
@@ -29,10 +29,7 @@ class LoadFactOperator(BaseOperator):
         
         if self.truncate:
             self.log.info('Truncating Redshift table')
-            redshift.run(f'TRUNCATE {self.table}')
+            redshift_hook.run(f'TRUNCATE {self.table}')
             
         self.log.info(f'Loading fact table {self.table}')
-        postgres.run(insert.format(
-            table = self.table, 
-            sql = self.sql
-        ))
+        redshift_hook.run(LoadFactOperator.insert_sql.format(self.table, self.sql))

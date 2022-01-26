@@ -6,8 +6,8 @@ class LoadDimensionOperator(BaseOperator):
 
     ui_color = '#80BD9E'
     insert_sql = '''
-        INSERT INTO {self.table}
-        {self.sql}
+        INSERT INTO {}
+        {}
     '''
 
     @apply_defaults
@@ -29,10 +29,7 @@ class LoadDimensionOperator(BaseOperator):
         
         if self.truncate:
             self.log.info('Truncating Redshift table')
-            redshift.run(f'TRUNCATE {self.table}')
+            redshift_hook.run(f'TRUNCATE {self.table}')
             
         self.log.info(f'Loading dimension table {self.table}')
-        postgres.run(insert.format(
-            table = self.table, 
-            sql = self.sql
-        ))
+        redshift_hook.run(LoadDimensionOperator.insert_sql.format(self.table, self.sql))
